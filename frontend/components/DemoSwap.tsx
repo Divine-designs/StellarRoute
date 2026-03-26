@@ -86,9 +86,9 @@ export function DemoSwap() {
 
   const sellMaxDecimals = selectedPair
     ? maxDecimalsForSellAsset(
-        selectedPair.base_asset,
-        selectedPair.base_decimals,
-      )
+      selectedPair.base_asset,
+      selectedPair.base_decimals,
+    )
     : maxDecimalsForSellAsset("native");
 
   const parseResult = parseSellAmount(sellRaw, sellMaxDecimals);
@@ -370,9 +370,8 @@ export function DemoSwap() {
                   key={preset}
                   type="button"
                   onClick={() => setSlippage(preset)}
-                  className={`rounded-md border px-3 py-1 text-sm ${
-                    slippage === preset ? "bg-primary text-primary-foreground" : ""
-                  }`}
+                  className={`rounded-md border px-3 py-1 text-sm ${slippage === preset ? "bg-primary text-primary-foreground" : ""
+                    }`}
                 >
                   {preset}%
                 </button>
