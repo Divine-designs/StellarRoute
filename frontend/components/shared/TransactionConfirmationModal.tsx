@@ -45,6 +45,8 @@ interface TransactionConfirmationModalProps {
   // Actions
   onConfirm: () => void;
   onCancel?: () => void;
+  confirmDisabled?: boolean;
+  confirmDisabledReason?: string;
   // State
   status: TransactionStatus | "review";
   errorMessage?: string;
@@ -73,6 +75,8 @@ export function TransactionConfirmationModal({
   routePath,
   onConfirm,
   onCancel,
+  confirmDisabled = false,
+  confirmDisabledReason,
   status,
   errorMessage,
   txHash,
@@ -267,9 +271,19 @@ export function TransactionConfirmationModal({
             </div>
 
             <DialogFooter className="flex-col sm:flex-col gap-2">
-              <Button onClick={onConfirm} className="w-full min-h-[48px]" size="lg">
+              <Button
+                onClick={onConfirm}
+                className="w-full min-h-[48px]"
+                size="lg"
+                disabled={confirmDisabled}
+              >
                 Confirm Swap
               </Button>
+              {confirmDisabledReason && (
+                <p className="w-full text-center text-xs text-destructive">
+                  {confirmDisabledReason}
+                </p>
+              )}
               <Button
                 type="button"
                 variant="outline"

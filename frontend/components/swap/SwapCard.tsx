@@ -10,7 +10,8 @@ import { SlippageControl } from './SlippageControl';
 import { SwapCTA } from './SwapCTA';
 import { SimulationPanel } from './SimulationPanel';
 import { useTradeFormStorage } from '@/hooks/useTradeFormStorage';
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 
 export function SwapCard() {
   const {
@@ -24,27 +25,84 @@ export function SwapCard() {
 
   const [receiveAmount, setReceiveAmount] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [quoteError, setQuoteError] = useState<string | null>(null);
+  const quoteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { isOnline, isOffline } = useOnlineStatus();
 
   // Derived state for the button
   const isValidAmount = parseFloat(payAmount) > 0;
 
-  // Simulate quote fetching
+  const clearQuoteTimer = useCallback(() => {
+    if (quoteTimerRef.current) {
+      clearTimeout(quoteTimerRef.current);
+      quoteTimerRef.current = null;
+    }
+  }, []);
+
+  const requestQuote = useCallback((amount: string) => {
+    clearQuoteTimer();
+    const amountNumber = parseFloat(amount);
+
+    if (!Number.isFinite(amountNumber) || amountNumber <= 0) {
+      setIsLoading(false);
+      setQuoteError(null);
+      setReceiveAmount('');
+      return;
+    }
+
+    if (!isOnline) {
+      setIsLoading(false);
+      setQuoteError('You are offline. Reconnect to refresh quote.');
+      return;
+    }
+
+    setIsLoading(true);
+    setQuoteError(null);
+
+    quoteTimerRef.current = setTimeout(() => {
+      setReceiveAmount((amountNumber * 0.98).toFixed(4));
+      setIsLoading(false);
+    }, 500);
+  }, [clearQuoteTimer, isOnline]);
+
   const handlePayAmountChange = (amount: string) => {
     setPayAmount(amount);
-    if (parseFloat(amount) > 0) {
-      setIsLoading(true);
-      setTimeout(() => {
-        setReceiveAmount((parseFloat(amount) * 0.98).toFixed(4));
-        setIsLoading(false);
-      }, 500);
-    } else {
-      setReceiveAmount('');
-    }
+    requestQuote(amount);
   };
 
+  const handleRetryQuote = () => {
+    requestQuote(payAmount);
+  };
+
+  useEffect(() => {
+    if (!isOnline) {
+      clearQuoteTimer();
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional UI transition for offline mode
+      setIsLoading(false);
+      if (parseFloat(payAmount) > 0) {
+        setQuoteError('You are offline. Reconnect to refresh quote.');
+      }
+      return;
+    }
+
+    // Automatic recovery: once online, refresh the active quote.
+    if (quoteError && parseFloat(payAmount) > 0) {
+      requestQuote(payAmount);
+    }
+  }, [isOnline, payAmount, quoteError, clearQuoteTimer, requestQuote]);
+
+  useEffect(() => {
+    return () => {
+      clearQuoteTimer();
+    };
+  }, [clearQuoteTimer]);
+
   const handleReset = () => {
+    clearQuoteTimer();
     reset();
     setReceiveAmount('');
+    setQuoteError(null);
+    setIsLoading(false);
   };
 
   // Defer render until localStorage has been read to avoid flash of default values
@@ -64,6 +122,12 @@ export function SwapCard() {
   return (
     <Card className="w-full border shadow-sm">
       <CardHeader className="pb-4">
+        {isOffline && (
+          <div className="mb-3 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            You&apos;re offline. Quote refresh and swap submission are paused until
+            your connection is restored.
+          </div>
+        )}
         <div className="flex items-center justify-between flex-row">
           <CardTitle className="text-xl font-semibold">Swap</CardTitle>
           <div className="flex items-center gap-1">
@@ -99,10 +163,26 @@ export function SwapCard() {
             <RouteDisplay amountOut={receiveAmount} />
           </>
         )}
+        {quoteError && isValidAmount && (
+          <div className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+            <p>{quoteError}</p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="mt-2"
+              onClick={handleRetryQuote}
+              disabled={!isOnline || isLoading}
+            >
+              Retry quote
+            </Button>
+          </div>
+        )}
         <SwapCTA
           amount={payAmount}
           isLoading={isLoading}
           hasPair={true}
+          isOnline={isOnline}
           onSwap={() => console.log('Swapping...')}
         />
       </CardContent>

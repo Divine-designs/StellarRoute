@@ -7,16 +7,26 @@ interface SwapCTAProps {
   amount: string;
   isLoading: boolean;
   hasPair: boolean;
+  isOnline?: boolean;
   onSwap: () => void;
 }
 
-export function SwapCTA({ amount, isLoading, hasPair, onSwap }: SwapCTAProps) {
+export function SwapCTA({
+  amount,
+  isLoading,
+  hasPair,
+  isOnline = true,
+  onSwap,
+}: SwapCTAProps) {
   const numAmount = parseFloat(amount || "0");
 
   let label = "Review Swap";
   let disabled = false;
 
-  if (!hasPair) {
+  if (!isOnline) {
+    label = "Offline";
+    disabled = true;
+  } else if (!hasPair) {
     label = "Select tokens";
     disabled = true;
   } else if (!amount || isNaN(numAmount) || numAmount <= 0) {
