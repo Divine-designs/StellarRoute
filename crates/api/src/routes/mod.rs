@@ -25,9 +25,6 @@ pub fn create_router(state: Arc<AppState>) -> Router {
             get(orderbook::get_orderbook),
         )
         .route("/api/v1/quote/:base/:quote", get(quote::get_quote))
-        // WebSocket quote stream
-        // NOTE: ConnectInfo requires `into_make_service_with_connect_info::<SocketAddr>()`
-        // in server.rs (axum::serve call) for the addr extractor to work.
-        .route("/ws", get(ws::ws_handler))
+        .route("/api/v1/route/:base/:quote", get(quote::get_route))
         .with_state(state)
 }
