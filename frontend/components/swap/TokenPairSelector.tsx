@@ -134,12 +134,14 @@ function AssetSelectionDialog({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9 pr-9"
+            aria-label="Search assets"
           />
           {search && (
             <button
               type="button"
               onClick={() => setSearch("")}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              aria-label="Clear search"
             >
               <X className="h-4 w-4" />
             </button>
@@ -178,6 +180,7 @@ function AssetSelectionDialog({
                     className="p-1 rounded hover:bg-accent"
                     onClick={(e) => handleCopyIssuer(asset.issuer!, e)}
                     title="Copy issuer address"
+                    aria-label="Copy issuer address"
                   >
                     <Copy className="h-3 w-3" />
                   </button>
@@ -319,6 +322,7 @@ export function TokenPairSelector({
             className="shrink-0"
           >
             <ArrowLeftRight className="h-4 w-4" />
+            <span className="sr-only">Swap base and quote assets</span>
           </Button>
 
           <div className="flex-1">
