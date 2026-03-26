@@ -246,10 +246,11 @@ impl MultiRegionRouter {
         }
 
         // All regions failed
-        Err(ApiError::Internal(std::sync::Arc::new(anyhow::anyhow!(
+        Err(ApiError::Internal(Arc::new(anyhow::anyhow!(
             "All regions exhausted: {}",
             last_error.unwrap_or_else(|| "Unknown error".to_string())
-        ))))
+        )))
+        .into())
     }
 
     /// Get routing metrics
