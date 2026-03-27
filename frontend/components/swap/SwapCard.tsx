@@ -13,6 +13,8 @@ import { FeeBreakdownPanel } from './FeeBreakdownPanel';
 import { useTradeFormStorage } from '@/hooks/useTradeFormStorage';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
+import { STELLAR_NATIVE_MAX_DECIMALS } from '@/lib/amount-input';
+import { SwapValidationSchema } from '@/lib/swap-validation';
 
 export function SwapCard() {
   const {
@@ -32,8 +34,15 @@ export function SwapCard() {
   const [confidenceScore, setConfidenceScore] = useState<number>(85);
   const [volatility, setVolatility] = useState<'high' | 'medium' | 'low'>('low');
 
-  // Derived state for the button
-  const isValidAmount = parseFloat(payAmount) > 0;
+  const validation = SwapValidationSchema.validate(
+    {
+      amount: payAmount,
+      maxDecimals: STELLAR_NATIVE_MAX_DECIMALS,
+      slippage,
+    },
+    { mode: 'submit', requirePair: false },
+  );
+  const isValidAmount = validation.amountResult.status === 'ok';
 
   const clearQuoteTimer = useCallback(() => {
     if (quoteTimerRef.current) {
@@ -212,9 +221,8 @@ export function SwapCard() {
           </div>
         )}
         <SwapCTA
-          amount={payAmount}
+          validation={validation}
           isLoading={isLoading}
-          hasPair={true}
           isOnline={isOnline}
           onSwap={() => console.log('Swapping...')}
         />

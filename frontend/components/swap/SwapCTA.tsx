@@ -2,35 +2,43 @@
 
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import type { SwapValidationResult } from "@/lib/swap-validation";
 
 interface SwapCTAProps {
-  amount: string;
+  validation: SwapValidationResult;
   isLoading: boolean;
-  hasPair: boolean;
   isOnline?: boolean;
   onSwap: () => void;
 }
 
 export function SwapCTA({
-  amount,
+  validation,
   isLoading,
-  hasPair,
   isOnline = true,
   onSwap,
 }: SwapCTAProps) {
-  const numAmount = parseFloat(amount || "0");
-
   let label = "Review Swap";
   let disabled = false;
+
+  const hasPairIssue = validation.issues.some((issue) => issue.field === "pair");
+  const hasAmountIssue = validation.issues.some(
+    (issue) => issue.field === "amount",
+  );
+  const hasSlippageIssue = validation.issues.some(
+    (issue) => issue.field === "slippage",
+  );
 
   if (!isOnline) {
     label = "Offline";
     disabled = true;
-  } else if (!hasPair) {
+  } else if (hasPairIssue) {
     label = "Select tokens";
     disabled = true;
-  } else if (!amount || isNaN(numAmount) || numAmount <= 0) {
+  } else if (hasAmountIssue) {
     label = "Enter amount";
+    disabled = true;
+  } else if (hasSlippageIssue) {
+    label = "Invalid slippage";
     disabled = true;
   } else if (isLoading) {
     label = "Loading quote...";
@@ -38,8 +46,8 @@ export function SwapCTA({
   }
 
   return (
-    <Button 
-      className="w-full h-14 text-lg font-medium shadow-md transition-all active:scale-[0.98] mt-2" 
+    <Button
+      className="mt-2 h-14 w-full text-lg font-medium shadow-md transition-all active:scale-[0.98]"
       size="lg"
       disabled={disabled}
       onClick={onSwap}
