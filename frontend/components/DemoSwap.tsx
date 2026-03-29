@@ -1,4 +1,5 @@
-// frontend/components/DemoSwap.tsx
+"use client";
+
 import { useEffect, useRef } from "react";
 
 // Placeholder functions — replace with your actual logic if they exist
