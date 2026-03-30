@@ -36,13 +36,6 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     }
   });
 
-  // Sync with next-themes theme
-  useEffect(() => {
-    if (theme) {
-      setSettings((prev) => ({ ...prev, theme: theme as ThemeSetting }));
-    }
-  }, [theme]);
-
   // Handle local storage saving
   useEffect(() => {
     try {
