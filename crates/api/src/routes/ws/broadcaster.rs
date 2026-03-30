@@ -207,6 +207,7 @@ async fn broadcaster_loop(
                     price_impact: None,
                     exclusion_diagnostics: None,
                     data_freshness: None,
+                    price_impact: None,
                 };
 
                 let msg = ServerMessage::now(ServerPayload::QuoteUpdate {
