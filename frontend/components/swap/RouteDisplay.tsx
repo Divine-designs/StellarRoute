@@ -5,6 +5,7 @@ import { ArrowRight, Info, ChevronDown, MapPin } from "lucide-react";
 import { useState, useMemo, useRef } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Badge } from "@/components/ui/badge";
+import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 import { ConfidenceIndicator } from "./ConfidenceIndicator";
 import { RouteDisplaySkeleton } from "./RouteDisplaySkeleton";
 import { cn } from "@/lib/utils";
@@ -27,6 +28,7 @@ export function RouteDisplay({
   volatility = "low",
   isLoading = false,
 }: RouteDisplayProps) {
+  const routesBetaEnabled = useFeatureFlag("routesBeta");
   const [showDetails, setShowDetails] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -39,6 +41,10 @@ export function RouteDisplay({
     estimateSize: () => 40, // height of a hop item + margin/padding approx
     overscan: 3,
   });
+
+  if (!routesBetaEnabled) {
+    return null;
+  }
 
   if (isLoading) {
     return <RouteDisplaySkeleton />;
